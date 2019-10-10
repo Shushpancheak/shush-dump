@@ -4,9 +4,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project (
-  "PROJECT_NAME"
+  "shush-dump"
   VERSION 1.0.0
-  DESCRIPTION ""
+  DESCRIPTION "A dumper with custom macros and Exception handler"
 )
 set (
   SOURCES
@@ -88,3 +88,6 @@ endif() # BUILD_TESTS
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - DEPENDENCIES- - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+add_subdirectory(shush-format)
+target_link_libraries(${LIBRARY_NAME} shush-format)
