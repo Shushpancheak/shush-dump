@@ -43,10 +43,10 @@ class OkOnConstructOnDestructClass {
 
 // Verify method.
 #ifdef DEBUG
-#define VERIFY \
+#define VERIFIED \
   shush::dump::OkOnConstructOnDestructClass<decltype(*this)> v(this);
 #else
-#define VERIFY ;
+#define VERIFIED ;
 #endif
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -114,6 +114,7 @@ private:
 };
 
 extern void HandleFinalDump(Dump& dump);
+extern std::string GetBadGoodStr(bool exr);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 // - - - - - - - - - - - - - - - -DUMPING- - - - - - - - - - - - - - - - - - - 

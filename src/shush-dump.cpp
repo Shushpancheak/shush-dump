@@ -91,3 +91,7 @@ void shush::dump::HandleFinalDump(Dump& dump) {
 
   file.close();
 }
+
+std::string shush::dump::GetBadGoodStr(bool exr) {
+  return exr ? "(GOOD) " : "(BAD)  ";
+}
