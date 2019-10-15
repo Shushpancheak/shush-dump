@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <shush-format.hpp>
+#include <utility>
 
 namespace shush {
 namespace dump {
@@ -14,22 +15,21 @@ namespace dump {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 // Message Assert.
-#ifdef DEBUG
-#define MASSERT(x, msg) \
-  !(x) && ({throw shush::dump::Dump(#x, __FILE__, __LINE__, msg);})
+#ifndef NDEBUG
+#define MASSERT(x, errc) (!(x) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc)), 0))
 #else
-#define MASSERT(x, msg) ;
+#define MASSERT(x, errc) ;
 #endif
-#ifdef DEBUG
+#ifndef NDEBUG
 #define ASSERTED \
-   && ({throw shush::dump::Dump(#x, __FILE__, __LINE__, "");})
+   && ({throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage());})
 #else
 #define ASSERTED ;
 #endif
 
 template <class T>
-class OkOnConstructOnDestructClass {
-  OkOnConstructOnDestructClass(T* this_ptr)
+struct OkOnConstructOnDestructClass {
+  OkOnConstructOnDestructClass(T this_ptr)
       : this_ptr(this_ptr) {
     this_ptr->Ok();
   }
@@ -38,13 +38,12 @@ class OkOnConstructOnDestructClass {
     this_ptr->Ok();
   }
 
-  T* this_ptr;
+  T this_ptr;
 };
 
 // Verify method.
-#ifdef DEBUG
-#define VERIFIED \
-  shush::dump::OkOnConstructOnDestructClass<decltype(*this)> v(this);
+#ifndef NDEBUG
+#define VERIFIED shush::dump::OkOnConstructOnDestructClass<decltype(this)> v(this);
 #else
 #define VERIFIED ;
 #endif
@@ -55,7 +54,7 @@ class OkOnConstructOnDestructClass {
 
 inline const uint8_t  EXC_SIZE_EXPRESSION  = 128;
 inline const uint8_t  EXC_SIZE_FILE_NAME   = 255;
-inline const uint16_t EXC_SIZE_MESSAGE     = 2048;
+inline const uint32_t EXC_SIZE_MESSAGE     = 10000;
 inline const uint8_t  DUMP_EXCEPTION_COUNT = 16;
 
 inline const char    DEFAULT_DUMP_NAME[26] = "crash-report-{date}.dump";
@@ -80,18 +79,20 @@ public:
   DumpElement& operator=(DumpElement&&) noexcept;
 
   void LoadVars(const char* const expression, const char* const file_name,
-                uint32_t line_number, const char* const msg);
+                uint32_t line_number, const std::string& msg);
 
   char     expression [EXC_SIZE_EXPRESSION]{};
   char     file_name  [EXC_SIZE_FILE_NAME ]{};
   uint32_t line_number                     {};
-  char     msg        [EXC_SIZE_MESSAGE   ]{};
+  std::string msg; //TODO make static version of dump
 };
 
 class Dump {
 public:
   Dump(const char* const expression, const char* const file_name,
        uint32_t line_number, const char* const msg);
+  Dump(const char* const expression, const char* const file_name,
+       uint32_t line_number, const std::string& msg);
   Dump();
   ~Dump() = default;
 
@@ -105,12 +106,12 @@ public:
                       uint32_t line_number, const char* const msg);
   DumpElement PopFromStack();
   bool Empty();
-  uint8_t Size() const;
+  size_t Size() const;
 
   DumpElement dump_stack[DUMP_EXCEPTION_COUNT];
 
 private:
-  uint8_t cur_size_;
+  size_t cur_size_;
 };
 
 extern void HandleFinalDump(Dump& dump);
