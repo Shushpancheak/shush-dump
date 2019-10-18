@@ -89,5 +89,5 @@ endif() # BUILD_TESTS
 # - - - - - - - - - - - - DEPENDENCIES- - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-add_subdirectory(shush-format)
-target_link_libraries(${LIBRARY_NAME} shush-format)
+#add_subdirectory(shush-format)
+#target_link_libraries(${LIBRARY_NAME} shush-format)
