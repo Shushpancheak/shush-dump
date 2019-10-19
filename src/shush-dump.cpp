@@ -92,7 +92,7 @@ void shush::dump::HandleFinalDump(Dump& dump) {
   }
 
   if (!file.bad()) {
-    std::cerr << "DUMP FILE FORMED: " << file_name;
+    std::cerr << "DUMP FILE FORMED: " << file_name << std::endl;
   }
 
   file.close();

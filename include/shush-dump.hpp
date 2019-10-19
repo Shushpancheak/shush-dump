@@ -22,7 +22,7 @@ namespace dump {
 #endif
 #ifndef NDEBUG
 #define ASSERTED \
-   && ({throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage());})
+   || (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(-1)), 0)
 #else
 #define ASSERTED ;
 #endif
