@@ -1,102 +1,128 @@
 #include "shush-dump.hpp"
 
+
 shush::dump::DumpElement::
-DumpElement(const char* const expression, const char* const file_name, 
-            uint32_t line_number, const char* const msg) {
-  LoadVars(expression, file_name, line_number, msg);
+DumpElement(const char* const expression,
+            const char* const file_name,
+            const uint32_t    line_number,
+            const char* const msg,
+            const int         error_code,
+            const char*       error_name) {
+  LoadVars(expression, file_name, line_number, msg, error_code, error_name);
 }
+
 
 shush::dump::DumpElement::DumpElement(DumpElement& exc) {
-  LoadVars(exc.expression, exc.file_name, exc.line_number, exc.msg);
+  LoadVars(
+      exc.expression, exc.file_name, exc.line_number, exc.msg, exc.error_code,
+      exc.error_name);
 }
 
+
 shush::dump::DumpElement& shush::dump::DumpElement::operator=(
-  const DumpElement& exc) {
-  LoadVars(exc.expression, exc.file_name, exc.line_number, exc.msg);
+    const DumpElement& exc) {
+  LoadVars(
+      exc.expression, exc.file_name, exc.line_number, exc.msg, exc.error_code,
+      exc.error_name);
   return *this;
 }
+
 
 shush::dump::DumpElement::DumpElement(DumpElement&& exc) noexcept {
-  LoadVars(exc.expression, exc.file_name, exc.line_number, exc.msg);
+  LoadVars(
+      exc.expression, exc.file_name, exc.line_number, exc.msg, exc.error_code,
+      exc.error_name);
 }
 
+
 shush::dump::DumpElement& shush::dump::DumpElement::operator=(
-  DumpElement&& exc) noexcept {
-  LoadVars(exc.expression, exc.file_name, exc.line_number, exc.msg);
+    DumpElement&& exc) noexcept {
+  LoadVars(
+      exc.expression, exc.file_name, exc.line_number, exc.msg, exc.error_code,
+      exc.error_name);
   return *this;
 }
 
+
 void shush::dump::DumpElement::LoadVars(const char* const expression,
-  const char* const file_name, const uint32_t line_number,
-  const std::string& msg) {
+                                        const char* const file_name,
+                                        const uint32_t    line_number,
+                                        const char*       msg,
+                                        int               error_code,
+                                        const char*       error_name) {
   strcpy(this->expression, expression);
   strcpy(this->file_name, file_name);
-  this->msg = msg;
+  this->msg         = msg;
   this->line_number = line_number;
+  this->error_code  = error_code;
+  this->error_name  = error_name;
 }
 
-shush::dump::Dump::Dump(const char* const expression,
-  const char* const file_name, uint32_t line_number, 
-  const char* const msg)
-    : cur_size_(1) {
-  dump_stack[0].LoadVars(expression, file_name, line_number, msg);
-}
 
 shush::dump::Dump::Dump(const char* const expression,
-  const char* const file_name, uint32_t line_number, const std::string& msg)
-    : cur_size_(1) {
-  dump_stack[0].LoadVars(expression, file_name, line_number, msg);
+                        const char* const file_name,
+                        const uint32_t    line_number,
+                        const char* const msg,
+                        const int         error_code,
+                        const char*       error_name)
+  : cur_size_(1) {
+  dump_stack[0].LoadVars(
+      expression, file_name, line_number, msg, error_code, error_name);
 }
+
 
 shush::dump::Dump::Dump()
-    : cur_size_(0) {}
+  : cur_size_(0) {}
+
 
 void shush::dump::Dump::PushToStack(DumpElement&& exc) {
   dump_stack[cur_size_++] = std::move(exc);
 }
 
-void shush::dump::Dump::EmplaceToStack(const char* const expression,
-  const char* const file_name, uint32_t line_number, const char* const msg) {
-  dump_stack[cur_size_++].LoadVars(expression, file_name, line_number, msg);
-}
 
 shush::dump::DumpElement shush::dump::Dump::PopFromStack() {
   return dump_stack[--cur_size_];
 }
 
+
 bool shush::dump::Dump::Empty() {
   return cur_size_ == 0;
 }
+
 
 size_t shush::dump::Dump::Size() const {
   return cur_size_;
 }
 
-void shush::dump::HandleFinalDump(Dump& dump) {
-  std::ofstream file;
-  char file_name[FILE_NAME_SIZE];
-  format::FormatString(DEFAULT_DUMP_NAME, file_name);
-  file.open(file_name);
 
-  std::cerr << "ERROR OCCURED. ABORTING THE PROGRAM\n";
+void shush::dump::HandleFinalDump(Dump& dump) {
+  char          file_name[FILE_NAME_SIZE];
+  format::FormatString(DEFAULT_DUMP_NAME, file_name);
+  FILE* file = fopen(file_name, "w");
+
+  if (!file) {
+    fprintf(stderr, "COULD NOT OPEN \"%s\" TO CREATE DUMP.\n", file_name);
+    return;
+  }
 
   while (!dump.Empty()) {
     DumpElement elem = dump.PopFromStack();
-    file << "- - - - - - - - - DUMP CAUGHT #" << dump.Size() << "- - - - - - - - - \n";
-    if (elem.expression[0] != '\0') {
-      file << "ASSERTION FAILED: " << elem.expression << "\n";
-    }
-    file << "Dump message: " << elem.msg << "\n";
-    file << "Source: " << elem.file_name << "\n";
-    file << "Line number: " << elem.line_number << "\n";
+
+    fprintf(file, "- - - - - - - - - DUMP CAUGHT #%zu - - - - - - - - - \n", dump.Size());
+
+    fprintf(file, "Expression that caused error: %s\n", elem.expression);
+    fprintf(file, "Source: %s\n",          elem.file_name);
+    fprintf(file, "Line number: %u\n",     elem.line_number);
+    fprintf(file, "Error code: %d (%s)\n", elem.error_code, elem.error_code == -2 ? STR_NO_ERROR :
+     elem.error_code == -1 ? STR_ASSERTION_FAILED : elem.error_name);
+    fprintf(file, "Dump message: %s\n",    elem.msg);
   }
 
-  if (!file.bad()) {
-    std::cerr << "DUMP FILE FORMED: " << file_name << std::endl;
-  }
+  fprintf(stderr, "DUMP FILE \"%s\" FORMED .\n", file_name);
 
-  file.close();
+  fclose(file);
 }
+
 
 std::string shush::dump::GetBadGoodStr(bool exr) {
   return exr ? "(GOOD) " : "(BAD)  ";
