@@ -130,7 +130,7 @@ private:
 };
 
 extern void        HandleFinalDump(Dump& dump);
-extern std::string GetBadGoodStr(bool exr);
+extern std::string GetBadGoodStr(bool expr);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 // - - - - - - - - - - - - - - - -DUMPING- - - - - - - - - - - - - - - - - - - 
