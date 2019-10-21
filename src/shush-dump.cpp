@@ -101,7 +101,7 @@ void shush::dump::HandleFinalDump(Dump& dump) {
   FILE* file = fopen(file_name, "w");
 
   if (!file) {
-    fprintf(stderr, "COULD NOT OPEN \"%s\" TO CREATE DUMP.\n", file_name);
+    fprintf(stderr, "COULD NOT OPEN FILE \"%s\" TO CREATE DUMP.\n", file_name);
     return;
   }
 
@@ -109,6 +109,8 @@ void shush::dump::HandleFinalDump(Dump& dump) {
     DumpElement elem = dump.PopFromStack();
 
     fprintf(file, "- - - - - - - - - DUMP CAUGHT #%zu - - - - - - - - - \n", dump.Size());
+
+    fprintf(stderr, "Error: %d (%s).\n", elem.error_code, elem.error_name);
 
     fprintf(file, "Expression that caused error: %s\n", elem.expression);
     fprintf(file, "Source: %s\n",          elem.file_name);
@@ -118,12 +120,12 @@ void shush::dump::HandleFinalDump(Dump& dump) {
     fprintf(file, "Dump message: %s\n",    elem.msg);
   }
 
-  fprintf(stderr, "DUMP FILE \"%s\" FORMED .\n", file_name);
+  fprintf(stderr, "Dump file \"%s\" was formed .\n", file_name);
 
   fclose(file);
 }
 
 
-std::string shush::dump::GetBadGoodStr(bool exr) {
-  return exr ? "(GOOD) " : "(BAD)  ";
+std::string shush::dump::GetBadGoodStr(bool expr) {
+  return expr ? "(GOOD) " : "(BAD)  ";
 }

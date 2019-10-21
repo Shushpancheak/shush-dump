@@ -14,19 +14,19 @@ namespace dump {
 
 // Message Assert.
 #ifndef NDEBUG
-#define MASSERT(x, errc) (!(x) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc)), 0))
+#define MASSERT(x, errc) (!(x) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc), errc, this->GetErrorName(errc)), 0))
 #else
 #define MASSERT(x, errc) ;
 #endif
 
 #ifndef NDEBUG
 #define ASSERTED \
-   || (throw shush::dump::Dump("See the line number", __FILE__, __LINE__, this->GetDumpMessage(-1)), 0)
+   || (throw shush::dump::Dump("See the line number", __FILE__, __LINE__, this->GetDumpMessage(-1), errc, nullptr), 0)
 #else
 #define ASSERTED ;
 #endif
 
-#define UMASSERT(x, errc) (!(x) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc)), 0))
+#define UMASSERT(x, errc) (!(x) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc), errc, this->GetErrorName(errc)), 0))
 
 template <class T>
 struct OkOnConstructOnDestructClass {
@@ -92,10 +92,10 @@ public:
                 uint32_t    line_number,
                 const char* msg,
                 int error_code,
-                const char* error_name));
+                const char* error_name);
 
   char        expression [EXC_SIZE_EXPRESSION]{};
-  char        file_name [EXC_SIZE_FILE_NAME ] {};
+  char        file_name  [EXC_SIZE_FILE_NAME ]{};
   uint32_t    line_number                     {};
   const char* msg                             {};
   int         error_code                      {};
