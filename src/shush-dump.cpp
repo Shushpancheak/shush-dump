@@ -105,6 +105,8 @@ void shush::dump::HandleFinalDump(Dump& dump) {
     return;
   }
 
+  setbuf(file, nullptr);
+
   while (!dump.Empty()) {
     DumpElement elem = dump.PopFromStack();
 
