@@ -28,6 +28,10 @@ namespace dump {
 
 #define UMASSERT(x, errc) (!(x) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc), errc, this->GetErrorName(errc)), 0))
 
+// Includes additional expression that will be calculated if
+// x is false.
+#define UAASSERT(x, expression, errc) (!(x) && (((expression), throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc), errc, this->GetErrorName(errc))), 0))
+
 template <class T>
 struct OkOnConstructOnDestructClass {
   OkOnConstructOnDestructClass(T this_ptr)
