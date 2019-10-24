@@ -30,7 +30,7 @@ namespace dump {
 
 // Includes additional expression that will be calculated if
 // x is false.
-#define UEASSERT(x, expression, errc) (!(x) && (((expression), throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc), errc, this->GetErrorName(errc))), 0))
+#define UEASSERT(x, expression, errc) (!(x) && ((expression), 1) && (throw shush::dump::Dump(#x, __FILE__, __LINE__, this->GetDumpMessage(errc), errc, this->GetErrorName(errc)), 0))
 
 template <class T>
 struct OkOnConstructOnDestructClass {
